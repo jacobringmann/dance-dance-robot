@@ -1,0 +1,16 @@
+Google App Engine Java Runtime SDK - Dance Dance Droid Demo
+
+An example of a purely Ajax style application using Google App Engine and
+Google Web Toolkit.
+
+To compile and run this sample in 3 easy steps:
+
+(1) DOWNLOAD GWT 2.0 or later from:
+http://code.google.com/webtoolkit/
+
+(2) COMPILE AND RUN:
+ant runserver
+
+(3) DANCE WITH YOUR CUBE MATE:
+* This step is optional.
+
