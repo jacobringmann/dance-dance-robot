@@ -459,10 +459,10 @@ public class Deferred extends HttpServlet {
                                                 new BufferedOutputStream( bytesOut ) );
             objectOut.writeObject( obj );
             objectOut.close();
-            if ( isDevelopment() ) { // workaround for issue #2097
+//             if ( isDevelopment() ) { // workaround for issue #2097
                 return encodeBase64( bytesOut.toByteArray() );
-            }
-            return bytesOut.toByteArray();
+//             }
+//             return bytesOut.toByteArray();
         } catch ( IOException e ) {
             throw new QueueFailureException( e );
         }
@@ -481,9 +481,13 @@ public class Deferred extends HttpServlet {
             return null;
         }
         try {
-            byte[] bytesIn = new byte[ req.getContentLength() ];
-            req.getInputStream().readLine( bytesIn, 0, bytesIn.length );
-            return deserialize( bytesIn );
+	    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            byte[] buffer = new byte[8192];
+            int len;
+            while ((len = req.getInputStream().read(buffer)) != -1) {
+                baos.write(buffer, 0, len);
+            }
+            return deserialize( baos.toByteArray() );
         } catch ( IOException e ) {
             log.log( Level.SEVERE, "Error deserializing task", e );
             return null; // don't retry task
@@ -500,9 +504,9 @@ public class Deferred extends HttpServlet {
     private static Object deserialize( byte[] bytesIn ) {
         ObjectInputStream objectIn = null;
         try {
-            if ( isDevelopment() ) { // workaround for issue #2097
+//             if ( isDevelopment() ) { // workaround for issue #2097
                 bytesIn = decodeBase64( bytesIn );
-            }
+//             }
             objectIn = new ObjectInputStream( new BufferedInputStream(
                                         new ByteArrayInputStream( bytesIn ) ) );
             return objectIn.readObject();
