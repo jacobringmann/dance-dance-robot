@@ -208,8 +208,7 @@ public class GamePanel extends VerticalPanel {
         return i + 1;
       }
     }
-    // Their score should be in the list, so we shouldn't get here.
-    return scores.size();
+    return Math.max(1, scores.size());
   }
 
   private Widget getPlayerWidget(PlayerValue player) {
