@@ -22,8 +22,7 @@ import java.util.List;
 */
 public class SendDanceBegin implements Deferred.Deferrable {
 
-    //  private static final int NUM_ROUNDS = 10;
-  private static final int NUM_ROUNDS = 3;
+  private static final int NUM_ROUNDS = 10;
   private static final int START_STEP_COUNT = 3;
   private static final int START_TIMEOUT = 6000;
   private static final Step[] steps = Step.values();
