@@ -1,5 +1,7 @@
 package com.google.appengine.demos.dda.client;
 
+import com.google.gwt.event.dom.client.ChangeEvent;
+import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.Command;
@@ -20,8 +22,10 @@ public class FindGamePanel extends VerticalPanel {
   TextBox nameTextBox;
   Label statusText;
   GameServiceAsync gameService;
+  Main main;
 
-  FindGamePanel(final Main main) {
+  FindGamePanel(Main main) {
+    this.main = main;
     gameService = GameService.App.getInstance();
 
     HorizontalPanel firstRow = new HorizontalPanel();
@@ -38,20 +42,14 @@ public class FindGamePanel extends VerticalPanel {
     secondRow.add(name);
     secondRow.add(nameTextBox = new TextBox());
     Button loginButton = new Button("Join a Game");
+    nameTextBox.addChangeHandler(new ChangeHandler() {
+      public void onChange(ChangeEvent changeEvent) {
+        findGame();
+      }
+    });
     loginButton.addClickHandler(new ClickHandler() {
       public void onClick(ClickEvent event) {
-        statusText.setText("Looking for a game...");
-        final String name = nameTextBox.getText();
-        gameService.login(name, new AsyncCallback<LoginResults>() {
-          public void onFailure(Throwable caught) {
-            Window.alert(caught.getMessage());
-          }
-
-          public void onSuccess(LoginResults results) {
-            statusText.setText("");
-            main.loginComplete(name, results);
-          }
-        });
+        findGame();
       }
     });
     secondRow.add(loginButton);
@@ -62,6 +60,21 @@ public class FindGamePanel extends VerticalPanel {
     DeferredCommand.addCommand(new Command() {
       public void execute() {
         nameTextBox.setFocus(true);          
+      }
+    });
+  }
+
+  private void findGame() {
+    statusText.setText("Looking for a game...");
+    final String name = nameTextBox.getText();
+    gameService.login(name, new AsyncCallback<LoginResults>() {
+      public void onFailure(Throwable caught) {
+        Window.alert(caught.getMessage());
+      }
+
+      public void onSuccess(LoginResults results) {
+        statusText.setText("");
+        main.loginComplete(name, results);
       }
     });
   }
