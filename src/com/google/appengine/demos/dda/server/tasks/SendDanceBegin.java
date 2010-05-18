@@ -4,6 +4,7 @@ import com.google.appengine.demos.dda.server.Game;
 import com.google.appengine.demos.dda.server.GameServiceImpl;
 import com.google.appengine.demos.dda.server.PushServer;
 import com.google.appengine.demos.dda.shared.DanceBeginMessage;
+import com.google.appengine.demos.dda.shared.GameEndMessage;
 import com.google.appengine.demos.dda.shared.Step;
 import com.newatlanta.appengine.taskqueue.Deferred;
 
@@ -21,7 +22,8 @@ import java.util.List;
 */
 public class SendDanceBegin implements Deferred.Deferrable {
 
-  private static final int NUM_ROUNDS = 10;
+    //  private static final int NUM_ROUNDS = 10;
+  private static final int NUM_ROUNDS = 3;
   private static final int START_STEP_COUNT = 3;
   private static final int START_TIMEOUT = 6000;
   private static final Step[] steps = Step.values();
@@ -36,9 +38,9 @@ public class SendDanceBegin implements Deferred.Deferrable {
   }
 
   public void doTask() throws ServletException, IOException {
-    PushServer.sendMessage(game.getPlayers(), msg);
+    if (msg.getRound() < NUM_ROUNDS) {
+      PushServer.sendMessage(game.getPlayers(), msg);
 
-    if (msg.getRound() < NUM_ROUNDS - 1) {
       // TODO(tobyr) Enough time for Simon to do his dance, people to imitate him,
       // and a breather between rounds. We should ponder if it makes sense to
       // let the clients tell us when they're ready for the next round.
@@ -46,6 +48,8 @@ public class SendDanceBegin implements Deferred.Deferrable {
       int nextRoundDelay = 5000 + msg.getTimeoutMillis() * 2;
       Deferred.defer(new SendDanceBegin(game, createRandomDance(msg.getRound() + 1)),
           GameServiceImpl.getTaskOptions().countdownMillis(nextRoundDelay));
+    } else {
+      PushServer.sendMessage(game.getPlayers(), new GameEndMessage());
     }
   }
 

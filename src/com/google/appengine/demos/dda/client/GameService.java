@@ -55,5 +55,5 @@ public interface GameService extends RemoteService {
    *
    * @param step
    */
-  void reportStep(Step step);
+  void reportStep(Step step, int score);
 }

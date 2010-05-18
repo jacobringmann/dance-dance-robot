@@ -4,6 +4,7 @@ import com.google.appengine.demos.dda.shared.*;
 import com.google.appengine.demos.dda.shared.values.PlayerValue;
 import com.google.gwt.animation.client.Animation;
 import com.google.gwt.dom.client.NativeEvent;
+import com.google.gwt.http.client.URL;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.MouseDownEvent;
@@ -15,6 +16,8 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.*;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -34,6 +37,8 @@ public class GamePanel extends VerticalPanel {
   Label gameLabel = new Label();
   Label actionLabel = new Label();
   Map<String,Image> playerImages = new HashMap<String,Image>();
+  Map<String,Label> scoreLabels = new HashMap<String,Label>();
+  Map<String, Integer> playerScores = new HashMap<String, Integer>();
   static final int numRows = 4;
   static final int numColumns = 4;
   Grid playerGrid = new DynamicGrid(numRows, numColumns);
@@ -137,6 +142,10 @@ public class GamePanel extends VerticalPanel {
         stepOccurred((StepOccurredMessage)msg);
       break;
 
+      case GAME_END:
+        endGame((GameEndMessage)msg);
+      break;
+
       default:
         Window.alert("Unknown game type: " + msg.getType());
     }
@@ -147,14 +156,60 @@ public class GamePanel extends VerticalPanel {
   }
 
   private void stepOccurred(StepOccurredMessage msg) {
-    Image img = playerImages.get(msg.getPlayer().getKey());
+    String key = msg.getPlayer().getKey();
+    Image img = playerImages.get(key);
     stepAnimateRemote(img, msg.getStep());
+    Label score = scoreLabels.get(key);
+    score.setText("(" + msg.getScore() + ")");
+    playerScores.put(key, msg.getScore());
   }
 
   private void beginGame() {
     gameStartTimer.cancel();
     roundLabel.setText("Round 1 of 10");
     timeLabel.setText("Time Remaining:");
+  }
+
+  private void endGame(GameEndMessage message) {
+    displayAward(playerName, formatPlace(getPlace()) + " place");
+  }
+
+  private void displayAward(String name, String place) {
+    final DialogBox box = new DialogBox(true, true);
+    box.setWidget(new Image("/render-award?to=" + URL.encodeComponent(name) +
+			    "&for=" + URL.encodeComponent(place)));
+    box.setAnimationEnabled(true);
+    box.setPopupPositionAndShow(new PopupPanel.PositionCallback() {
+      public void setPosition(int offsetWidth, int offsetHeight) {
+        int left = (Window.getClientWidth() - offsetWidth) / 2 - 400;
+        int top =  50;
+        box.setPopupPosition(left, top);
+      }
+    });
+  }
+
+  private String formatPlace(int place) {
+    if (place % 10 == 1) {
+      return place + "st";
+    } else if (place % 10 == 2) {
+      return place + "nd";
+    } else if (place % 10 == 3) {
+      return place + "rd";
+    } else {
+      return place + "th";
+    }
+  }
+
+  private int getPlace() {
+    ArrayList<Integer> scores = new ArrayList<Integer>(playerScores.values());
+    Collections.sort(scores);
+    for (int i = 0; i < scores.size(); i++) {
+      if (scores.get(i) >= score) {
+        return i + 1;
+      }
+    }
+    // Their score should be in the list, so we shouldn't get here.
+    return scores.size();
   }
 
   private Widget getPlayerWidget(PlayerValue player) {
@@ -172,6 +227,10 @@ public class GamePanel extends VerticalPanel {
     playerLabel.setWidth(playerImage.getWidth() + "px");
     playerLabel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
     panel.add(playerLabel);
+    Label scoreLabel = new Label("(0)");
+    scoreLabel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
+    scoreLabels.put(player.getKey(), scoreLabel);
+    panel.add(scoreLabel);
     return panel;
   }
 
@@ -270,7 +329,11 @@ public class GamePanel extends VerticalPanel {
     Step expectedStep = steps.get(currentStep);
     ++currentStep;
     final boolean isValidStep = step == expectedStep;
-    gameService.reportStep(isValidStep ? step : null, new AsyncCallback() {
+    if (isValidStep && currentStep == steps.size()) {
+      score += 10 * (danceMessage.getRound() + 1);
+      setScoreText(score);
+    }
+    gameService.reportStep(isValidStep ? step : null, score, new AsyncCallback() {
       public void onFailure(Throwable caught) {
         Window.alert(caught.getMessage());
       }
@@ -320,10 +383,6 @@ public class GamePanel extends VerticalPanel {
         } else {
           cancel();
           readyForInput = false;
-          if (correctStepsTaken == msg.getSteps().size()) {
-            score += 10 * (round + 1);
-          }
-          setScoreText(score);
           setTimeText(0);
           if (msg.getRound() < 9) {
             gameLabel.setText("Time's up!");

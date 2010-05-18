@@ -17,5 +17,5 @@ public interface GameServiceAsync {
 
   void login(String name, AsyncCallback<LoginResults> async);
   void confirmLogin(AsyncCallback<List<Message>> async);
-  void reportStep(Step step, AsyncCallback async);
+  void reportStep(Step step, int score, AsyncCallback async);
 }

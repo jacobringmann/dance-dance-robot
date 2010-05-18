@@ -10,7 +10,7 @@ import com.google.appengine.demos.dda.shared.values.PlayerValue;
 public class StepOccurredMessage extends Message {
   private PlayerValue player;
   private Step step;
-
+  private int score;
 
   @SuppressWarnings({"UnusedDeclaration"})
   // For GWT RPC
@@ -18,10 +18,11 @@ public class StepOccurredMessage extends Message {
     super(Type.STEP_OCCURRED);
   }
 
-  public StepOccurredMessage(PlayerValue player, Step step) {
+  public StepOccurredMessage(PlayerValue player, Step step, int score) {
     super(Type.STEP_OCCURRED);
     this.player = player;
     this.step = step;
+    this.score = score;
   }
 
   public PlayerValue getPlayer() {
@@ -30,5 +31,9 @@ public class StepOccurredMessage extends Message {
 
   public Step getStep() {
     return step;
+  }
+
+  public int getScore() {
+    return score;
   }
 }

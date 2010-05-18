@@ -16,6 +16,7 @@ public abstract class Message implements Serializable {
     ROUND_BEGIN,
     DANCE_BEGIN,
     STEP_OCCURRED,
+    GAME_END,
   }
 
   private Type type;
