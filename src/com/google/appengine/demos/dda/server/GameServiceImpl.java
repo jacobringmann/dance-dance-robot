@@ -115,8 +115,9 @@ public class GameServiceImpl extends RemoteServiceServlet
     return messages;
   }
 
-  public void reportStep(Step step, int score) {
-    StepOccurredMessage msg = new StepOccurredMessage(getPlayerForSession().toValue(), step, score);
+  public void reportStep(Step step, int score, int sequence) {
+    StepOccurredMessage msg = new StepOccurredMessage(getPlayerForSession().toValue(),
+                                                      step, score, sequence);
     Game game = getGameForSession();
     PushServer.sendMessage(game.getPlayers(), msg);
   }

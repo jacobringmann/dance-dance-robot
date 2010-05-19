@@ -10,6 +10,7 @@ import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.MouseDownEvent;
 import com.google.gwt.event.dom.client.MouseDownHandler;
 import com.google.gwt.resources.client.ImageResource;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
@@ -39,6 +40,7 @@ public class GamePanel extends VerticalPanel {
   Map<String,Image> playerImages = new HashMap<String,Image>();
   Map<String,Label> scoreLabels = new HashMap<String,Label>();
   Map<String, Integer> playerScores = new HashMap<String, Integer>();
+  Map<String, Integer> playerSequences = new HashMap<String, Integer>();
   static final int numRows = 4;
   static final int numColumns = 4;
   Grid playerGrid = new DynamicGrid(numRows, numColumns);
@@ -48,6 +50,7 @@ public class GamePanel extends VerticalPanel {
   Timer gameStartTimer;
 
   int score;
+  int seq;
 
   // Per-dance state
   boolean animating;
@@ -157,11 +160,17 @@ public class GamePanel extends VerticalPanel {
 
   private void stepOccurred(StepOccurredMessage msg) {
     String key = msg.getPlayer().getKey();
+    Integer oldSeq = playerSequences.get(key);
+    if (oldSeq != null && oldSeq >= msg.getSequence()) {
+      // We received a message out of sequence, ignore.
+      return;
+    }
     Image img = playerImages.get(key);
     stepAnimateRemote(img, msg.getStep());
     Label score = scoreLabels.get(key);
     score.setText("(" + msg.getScore() + ")");
     playerScores.put(key, msg.getScore());
+    playerSequences.put(key, msg.getSequence());
   }
 
   private void beginGame() {
@@ -332,7 +341,7 @@ public class GamePanel extends VerticalPanel {
       score += 10 * (danceMessage.getRound() + 1);
       setScoreText(score);
     }
-    gameService.reportStep(isValidStep ? step : null, score, new AsyncCallback() {
+    gameService.reportStep(isValidStep ? step : null, score, seq++, new AsyncCallback() {
       public void onFailure(Throwable caught) {
         Window.alert(caught.getMessage());
       }

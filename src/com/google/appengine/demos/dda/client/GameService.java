@@ -52,8 +52,6 @@ public interface GameService extends RemoteService {
 
   /**
    * Reports a Step taken by the player for this session.
-   *
-   * @param step
    */
-  void reportStep(Step step, int score);
+  void reportStep(Step step, int score, int sequence);
 }

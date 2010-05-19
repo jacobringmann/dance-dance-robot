@@ -11,6 +11,7 @@ public class StepOccurredMessage extends Message {
   private PlayerValue player;
   private Step step;
   private int score;
+  private int sequence;
 
   @SuppressWarnings({"UnusedDeclaration"})
   // For GWT RPC
@@ -18,11 +19,12 @@ public class StepOccurredMessage extends Message {
     super(Type.STEP_OCCURRED);
   }
 
-  public StepOccurredMessage(PlayerValue player, Step step, int score) {
+  public StepOccurredMessage(PlayerValue player, Step step, int score, int sequence) {
     super(Type.STEP_OCCURRED);
     this.player = player;
     this.step = step;
     this.score = score;
+    this.sequence = sequence;
   }
 
   public PlayerValue getPlayer() {
@@ -35,5 +37,9 @@ public class StepOccurredMessage extends Message {
 
   public int getScore() {
     return score;
+  }
+
+  public int getSequence() {
+    return sequence;
   }
 }

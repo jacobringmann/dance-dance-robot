@@ -135,14 +135,12 @@
   </target>
 
   <target name="compile.frontend">
-<!--
     <javac srcdir="src"
         destdir="war/WEB-INF/classes"
         classpathref="frontend.classpath">
       <include name="com/google/appengine/demos/dda/client/**" />
       <include name="com/google/appengine/demos/dda/shared/**" />
     </javac>
--->
     <compile.gwtc module="com.google.appengine.demos.dda.dda"
         srcdir="src"
         wardir="war"
