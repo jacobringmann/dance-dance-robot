@@ -292,7 +292,7 @@ public class GamePanel extends VerticalPanel {
     currentStep = 0;
     correctStepsTaken = 0;
     animating = false;
-    readyForInput = true;
+    readyForInput = false;
     actionLabel.setText("");
   }
 
@@ -307,6 +307,7 @@ public class GamePanel extends VerticalPanel {
   }
 
   private void listenForDanceInput(DanceBeginMessage danceMsg) {
+    readyForInput = true;
     gameLabel.setText("Repeat!");
     startCountdownTimer(danceMsg);
   }
