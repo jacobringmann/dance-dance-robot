@@ -1,9 +1,6 @@
 package com.google.appengine.demos.dda.client;
 
-import com.google.gwt.event.dom.client.ChangeEvent;
-import com.google.gwt.event.dom.client.ChangeHandler;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.*;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.DeferredCommand;
 import com.google.gwt.user.client.Window;
@@ -23,6 +20,7 @@ public class FindGamePanel extends VerticalPanel {
   Label statusText;
   GameServiceAsync gameService;
   Main main;
+  boolean findingGame;
 
   FindGamePanel(Main main) {
     this.main = main;
@@ -42,9 +40,11 @@ public class FindGamePanel extends VerticalPanel {
     secondRow.add(name);
     secondRow.add(nameTextBox = new TextBox());
     Button loginButton = new Button("Join a Game");
-    nameTextBox.addChangeHandler(new ChangeHandler() {
-      public void onChange(ChangeEvent changeEvent) {
-        findGame();
+    nameTextBox.addKeyPressHandler(new KeyPressHandler() {
+      public void onKeyPress(KeyPressEvent event) {
+        if (event.getCharCode() == KeyCodes.KEY_ENTER) {
+          findGame();
+        }
       }
     });
     loginButton.addClickHandler(new ClickHandler() {
@@ -65,16 +65,35 @@ public class FindGamePanel extends VerticalPanel {
   }
 
   private void findGame() {
+    findGame(null, 0);
+  }
+
+  private void findGame(Long gameId, final int numAttempts) {
+    if (findingGame) {
+      return;
+    }
+    findingGame = true;
     statusText.setText("Looking for a game...");
     final String name = nameTextBox.getText();
-    gameService.login(name, new AsyncCallback<LoginResults>() {
+    gameService.login(name, gameId, new AsyncCallback<LoginResults>() {
       public void onFailure(Throwable caught) {
-        Window.alert(caught.getMessage());
+        findingGame = false;
+        Window.alert("Failure: " + caught.getMessage());
       }
 
       public void onSuccess(LoginResults results) {
+        findingGame = false;
         statusText.setText("");
-        main.loginComplete(name, results);
+        Long gameId = results.getGameId();
+        if (gameId != null) {
+          if (numAttempts < 20) {
+            findGame(gameId, numAttempts + 1);
+          } else {
+            statusText.setText("Too many attempts to find a game");
+          }
+        } else {
+          main.loginComplete(name, results);
+        }
       }
     });
   }

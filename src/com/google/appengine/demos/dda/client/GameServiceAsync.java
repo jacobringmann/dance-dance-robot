@@ -15,7 +15,7 @@ import com.google.appengine.demos.dda.shared.LoginResults;
  */
 public interface GameServiceAsync {
 
-  void login(String name, AsyncCallback<LoginResults> async);
+  void login(String name, Long gameId, AsyncCallback<LoginResults> async);
   void confirmLogin(AsyncCallback<List<Message>> async);
   void reportStep(Step step, int score, int sequence, AsyncCallback async);
 }

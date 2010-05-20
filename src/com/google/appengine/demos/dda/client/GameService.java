@@ -39,7 +39,7 @@ public interface GameService extends RemoteService {
    * @param name The handle by which the user will be known.
    * @return data structure containing information required by the client.
    */
-  LoginResults login(String name);
+  LoginResults login(String name, Long gameId);
 
   /**
    * Confirms a successfully opened channel for the player in

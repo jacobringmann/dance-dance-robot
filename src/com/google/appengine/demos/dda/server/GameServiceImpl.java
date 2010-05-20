@@ -18,10 +18,7 @@ import javax.jdo.PersistenceManager;
 import javax.jdo.Query;
 import javax.jdo.Transaction;
 import javax.servlet.http.HttpSession;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Date;
+import java.util.*;
 
 import static com.google.appengine.api.labs.taskqueue.TaskOptions.Builder.url;
 import static com.newatlanta.appengine.taskqueue.Deferred.defer;
@@ -43,8 +40,10 @@ public class GameServiceImpl extends RemoteServiceServlet
   public static final String CURRENT_GAME_ID = "current_game_id";
   private static final String CURRENT_GAME_NUM_PLAYERS = "num_players";
 
-  public LoginResults login(final String name) {
-    long gameId = reserveGame();
+  public LoginResults login(final String name, Long gameId) {
+    if (gameId == null) {
+      gameId = reserveGame();
+    }
     HttpSession session = getThreadLocalRequest().getSession();
     session.setAttribute(GAME_ID, gameId);
     Game game = getGameById(gameId);
@@ -61,7 +60,12 @@ public class GameServiceImpl extends RemoteServiceServlet
       game.getPlayers().add(player);
       pm.makePersistent(game);
       tx.commit();
-    } finally {
+    } catch (ConcurrentModificationException ex) {
+      // Someone else tried to modify the game at the same time.
+      // Just let the client retry.
+      return new LoginResults(gameId, null, null);
+    }
+    finally {
       if (tx.isActive()) {
         tx.rollback();
       }
@@ -81,7 +85,7 @@ public class GameServiceImpl extends RemoteServiceServlet
                                        MAX_WAIT_TIME_MILLIS);
 
     String channelId = PushServer.createChannel(player);
-    return new LoginResults(channelId, estimatedStartTime);
+    return new LoginResults(null, channelId, estimatedStartTime);
   }
 
   private boolean tryCreateGame(long gameId) {
