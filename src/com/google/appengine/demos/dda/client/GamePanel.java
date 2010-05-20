@@ -397,6 +397,7 @@ public class GamePanel extends VerticalPanel {
             gameLabel.setText("Time's up!");
           } else {
             gameLabel.setText("Game Over!");            
+	    actionLabel.setText("Please wait while we generate your award...");
           }
         }
       }
