@@ -40,14 +40,13 @@ public class GameServiceImpl extends RemoteServiceServlet
   public static final String CURRENT_GAME_ID = "current_game_id";
   private static final String CURRENT_GAME_NUM_PLAYERS = "num_players";
 
-  public LoginResults login(final String name, Long gameId) {
+  public LoginResults login(final String name, Long gameId, int numRounds, int waitTime) {
     if (gameId == null) {
-      gameId = reserveGame();
+      gameId = reserveGame(waitTime);
     }
     HttpSession session = getThreadLocalRequest().getSession();
     session.setAttribute(GAME_ID, gameId);
     Game game = getGameById(gameId);
-
     Player player = new Player();
     player.setName(name);
     session.setAttribute(PLAYER, player);
@@ -58,6 +57,8 @@ public class GameServiceImpl extends RemoteServiceServlet
     try {
       tx.begin();
       game.getPlayers().add(player);
+      numRounds = numRounds <= 0 ? 10 : numRounds;
+      game.setNumRounds(Math.min(10, numRounds));
       pm.makePersistent(game);
       tx.commit();
     } catch (ConcurrentModificationException ex) {
@@ -82,7 +83,7 @@ public class GameServiceImpl extends RemoteServiceServlet
     }
 
     Date estimatedStartTime = new Date(game.getTimeCreated().getTime() +
-                                       MAX_WAIT_TIME_MILLIS);
+                                       waitTime * 1000);
 
     String channelId = PushServer.createChannel(player);
     return new LoginResults(null, channelId, estimatedStartTime);
@@ -165,7 +166,7 @@ public class GameServiceImpl extends RemoteServiceServlet
    * in the process.
    * @return the id of the game which has a reserved spot
    */
-  private long reserveGame() {
+  private long reserveGame(int waitTime) {
     // NB(tobyr) Starvation looks possible if we are always beaten out while
     // trying to join or create a new game.
 
@@ -198,7 +199,7 @@ public class GameServiceImpl extends RemoteServiceServlet
     if (tryCreateGame(gameId)) {
       cache.put(CURRENT_GAME_ID, gameId);
       cache.put(gameId + "-" + CURRENT_GAME_NUM_PLAYERS, 1);
-      defer(new StartGame(gameId), getTaskOptions().countdownMillis(MAX_WAIT_TIME_MILLIS));
+      defer(new StartGame(gameId), getTaskOptions().countdownMillis(waitTime * 1000));
       return gameId;
     }
 
@@ -208,7 +209,7 @@ public class GameServiceImpl extends RemoteServiceServlet
     gameId = findNewerGameInCache(gameId);
 
     // If our cache disappeared, start all over again.
-    return gameId == null ? reserveGame() : gameId;
+    return gameId == null ? reserveGame(waitTime) : gameId;
   }
 
   private Long getCachedGameId(MemcacheService memcache) {

@@ -175,7 +175,7 @@ public class GamePanel extends VerticalPanel {
 
   private void beginGame() {
     gameStartTimer.cancel();
-    roundLabel.setText("Round 1 of 10");
+    roundLabel.setText("Round 1 of " + Main.getNumRounds());
     timeLabel.setText("Time Remaining:");
   }
 
@@ -405,7 +405,7 @@ public class GamePanel extends VerticalPanel {
   }
 
   private void setRoundText(int round) {
-    roundLabel.setText("Round " + round + " of 10");
+    roundLabel.setText("Round " + round + " of " + Main.getNumRounds());
   }
 
   private void setTimeText(int seconds) {

@@ -76,4 +76,24 @@ public class Main implements EntryPoint {
     root.remove(findGamePanel);
     root.add(gamePanel);
   }
+
+  static int getNumRounds() {
+    String numRoundsStr = Window.Location.getParameter("num_rounds");
+    try {
+      return Integer.parseInt(numRoundsStr);
+    } catch (NumberFormatException e) {
+      // Use default
+      return 10;
+    }
+  }
+
+  static int getWaitTime() {
+    String waitTimeSecondsStr = Window.Location.getParameter("wait_time");
+    try {
+      return Integer.parseInt(waitTimeSecondsStr);
+    } catch (NumberFormatException e) {
+      // Use default
+      return 60;
+    }
+  }
 }

@@ -36,6 +36,9 @@ public class Game implements Serializable {
   @Persistent
   private Date timeCreated;
 
+  @Persistent
+  private Integer numRounds;
+
   /**
    * Creates a new Game in the NEW state.
    */
@@ -64,5 +67,13 @@ public class Game implements Serializable {
 
   public Date getTimeCreated() {
     return timeCreated;
+  }
+
+  public Integer getNumRounds() {
+    return numRounds;
+  }
+
+  public void setNumRounds(Integer numRounds) {
+    this.numRounds = numRounds;
   }
 }

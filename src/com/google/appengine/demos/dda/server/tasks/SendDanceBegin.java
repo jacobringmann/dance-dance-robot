@@ -22,7 +22,6 @@ import java.util.List;
 */
 public class SendDanceBegin implements Deferred.Deferrable {
 
-  private static final int NUM_ROUNDS = 10;
   private static final int START_STEP_COUNT = 3;
   private static final int START_TIMEOUT = 6000;
   private static final Step[] steps = Step.values();
@@ -37,7 +36,8 @@ public class SendDanceBegin implements Deferred.Deferrable {
   }
 
   public void doTask() throws ServletException, IOException {
-    if (msg.getRound() < NUM_ROUNDS) {
+    int numRounds = game.getNumRounds() == null ? 10 : game.getNumRounds();
+    if (msg.getRound() < numRounds) {
       PushServer.sendMessage(game.getPlayers(), msg);
 
       // TODO(tobyr) Enough time for Simon to do his dance, people to imitate him,

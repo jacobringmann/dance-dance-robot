@@ -75,7 +75,8 @@ public class FindGamePanel extends VerticalPanel {
     findingGame = true;
     statusText.setText("Looking for a game...");
     final String name = nameTextBox.getText();
-    gameService.login(name, gameId, new AsyncCallback<LoginResults>() {
+    gameService.login(name, gameId, Main.getNumRounds(), Main.getWaitTime(),
+      new AsyncCallback<LoginResults>() {
       public void onFailure(Throwable caught) {
         findingGame = false;
         Window.alert("Failure: " + caught.getMessage());
